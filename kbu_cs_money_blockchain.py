@@ -6,9 +6,15 @@ import datetime as date
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
+
 #Ui를 정의하고 있는 클래스
 class Ui_Form(object):
-    def setupUi(self, Form, previous_block):
+    blockchain = []
+    previous_block = []
+    block_to_add = []
+
+
+    def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(500, 500)#사이즈 변경
         self.addBtn = QtWidgets.QPushButton(Form)
@@ -25,29 +31,39 @@ class Ui_Form(object):
         self.cause_textBox.setObjectName("cause_textBox")
 
 
-        self.retranslateUi(Form, previous_block)
+        self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def retranslateUi(self, Form, previous_block):
+    def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "This is Widget"))
         self.addBtn.setText(_translate("Form", "ADD"))
-        self.addBtn.clicked.connect(self.add_btn_clicked(previous_block))
+        self.addBtn.clicked.connect(self.add_btn_clicked)
 
     #add 클릭하였을 때 일어나는 일
-    def add_btn_clicked(self, previous_block):
+    def add_btn_clicked(self):
         date = self.date_textBox.text()
         use_money = self.use_textBox.text()
         cause = self.cause_textBox.text()
 
-        if date:
-            block_to_add = next_block(previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
-            blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
-            previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
+        if len(self.blockchain) == 0:#블록의 길이가 0이면
+            # 맨 처음 블록 생성 후 체인으로 블록 묶기
+            self.blockchain = [create_genesis_block()]  # 리스트인 blockchanin에 첫번째 값(genesis) 블록 넣음
+            self.previous_block = self.blockchain[0]  # 위에서 생성된 첫번째 블록 만듬
 
-            print(date, ' ', use_money, ' ', cause)
+            if date:
+                self.block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
+                self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
+                self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
-            return previous_block
+                print(date, ' ', use_money, ' ', cause)
+        else:
+            if date:
+                block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
+                self.blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
+                self.previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
+
+                print(date, ' ', use_money, ' ', cause)
 
 #블록 정의
 class Block:
@@ -73,7 +89,7 @@ class Block:
 
 # 남은 금액 반환하는 함수
 def getRemainmoney(ormoney, usemoney):
-    return int(ormoney) - int(usemoney)
+    return ormoney - usemoney
 
 
 # 맨 처음 블록 생성하는 함수
@@ -87,9 +103,10 @@ def next_block(last_block, day, usemoney, cause):
     this_timestamp = day
     this_ormoney = last_block.remoney  # 전에 남은 금액이 현재 있는 돈이 된다
     this_usemoney = usemoney  # 사용한 금액을 매개변수로 받아서 저장
-    this_remoney = getRemainmoney(this_ormoney, this_usemoney)  # 함수 사용하여 남은 금액 작성
+    this_remoney = getRemainmoney(int(this_ormoney), int(this_usemoney))  # 함수 사용하여 남은 금액 작성
     this_cause = cause  # 사용자한테 받은 이유 넣기
     this_hash = last_block.hash
+
 
     return Block(this_index, this_timestamp, this_ormoney, this_usemoney, this_remoney, this_cause, this_hash)
 
@@ -97,10 +114,6 @@ def next_block(last_block, day, usemoney, cause):
 #main 시작
 if __name__ == "__main__":
     import sys
-
-    # 맨 처음 블록 생성 후 체인으로 블록 묶기
-    blockchain = [create_genesis_block()]  # 리스트인 blockchanin에 첫번째 값(genesis) 블록 넣음
-    previous_block = blockchain[0]  # 위에서 생성된 첫번째 블록 만듬
 
     #gui 생성
     app = QtWidgets.QApplication(sys.argv)
@@ -111,7 +124,7 @@ if __name__ == "__main__":
 
     # 위에서 정의한 UI Form을 Form 객체에 적용하고 있음
     ui = Ui_Form()
-    ui.setupUi(Form, previous_block)
+    ui.setupUi(Form)
 
     # Widget은 일단 메모리에 적재된 뒤 show 메소드로 화면에 보여짐
     Form.show()
