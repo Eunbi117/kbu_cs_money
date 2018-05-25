@@ -1,5 +1,5 @@
 #pyqt5를 사용하여 gui사용
-from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QLineEdit, QPushButton, QTextEdit
 
 #블록체인을 위하여
 import hashlib as hasher
@@ -37,6 +37,14 @@ class Ui_Form(QWidget):
         self.cause_textBox = QLineEdit(self)
         self.cause_textBox.setGeometry(100, 70, 250, 20)
 
+        #누적 상황 보여주기
+        view_lbl = QLabel('현재 상황', self)
+        view_lbl.move(15, 100)  # 좌표 이동
+        self.view = QTextEdit(self)
+        self.view.setOverwriteMode(True)
+        self.view.setReadOnly(True)
+        self.view.setGeometry(100, 100, 250, 100)
+
         #버튼
         addBtn = QPushButton('ADD', self)
         addBtn.move(267,230)
@@ -65,26 +73,22 @@ class Ui_Form(QWidget):
                 self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
                 self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
-                #출력 상황을 보기 위한 것
+                #저장한 블록 보여주기
                 for i in range(len(self.blockchain)):
-                    print(self.blockchain[i].timestamp)
-                    print(self.blockchain[i].usemoney)
-                    print(self.blockchain[i].cause)
-                    print(self.blockchain[i].remoney)
-
+                    stri = str(self.blockchain[i].timestamp)+' '+str(self.blockchain[i].usemoney)+' '+str(
+                        self.blockchain[i].cause) + ' ' + str(self.blockchain[i].remoney)
+                    self.view.append(stri)
 
         else:
             if date:
-                block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
-                self.blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
-                self.previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
+                self.block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
+                self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
+                self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
-                # 출력 상황을 보기 위한 것
-                for i in range(len(self.blockchain)):
-                    print(self.blockchain[i].timestamp)
-                    print(self.blockchain[i].usemoney)
-                    print(self.blockchain[i].cause)
-                    print(self.blockchain[i].remoney)
+                # 저장한 블록 보여주기
+                stri = str(self.block_to_add.timestamp) + ' ' + str(self.block_to_add.usemoney) + ' ' + str(
+                    self.block_to_add.cause) + ' ' + str(self.block_to_add.remoney)
+                self.view.append(stri)
 
 #블록 정의
 class Block:
