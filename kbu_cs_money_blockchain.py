@@ -1,50 +1,59 @@
+#pyqt5를 사용하여 gui사용
+from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QLineEdit, QPushButton
+
 #블록체인을 위하여
 import hashlib as hasher
 import datetime as date
 
-#pyqt5를 사용하여 gui사용
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
-
 
 #Ui를 정의하고 있는 클래스
-class Ui_Form(object):
-    blockchain = []
-    previous_block = []
-    block_to_add = []
+class Ui_Form(QWidget):
+    blockchain = []#블록이 연결되어 있음
+    previous_block = []#이전의 블록을 저장. 인덱스 번호를 가져와 다음 블록에 1을 더할거임
+    block_to_add = []#연결할 블록
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi()
 
 
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(500, 500)#사이즈 변경
-        self.addBtn = QtWidgets.QPushButton(Form)
-        self.addBtn.setGeometry(QtCore.QRect(50, 150, 75, 23))
-        self.addBtn.setObjectName("addBtn")
-        self.date_textBox = QtWidgets.QLineEdit(Form)
-        self.date_textBox.setGeometry(QtCore.QRect(50, 10, 350, 20))
-        self.date_textBox.setObjectName("date_textBox")
-        self.use_textBox = QtWidgets.QLineEdit(Form)
-        self.use_textBox.setGeometry(QtCore.QRect(50, 30, 350, 20))
-        self.use_textBox.setObjectName("use_textBox")
-        self.cause_textBox = QtWidgets.QLineEdit(Form)
-        self.cause_textBox.setGeometry(QtCore.QRect(50, 50, 350, 20))
-        self.cause_textBox.setObjectName("cause_textBox")
+    def setupUi(self):
+        #날짜
+        date_lbl = QLabel('날짜', self)
+        date_lbl.move(15,10) #좌표 이동
+        self.date_textBox = QLineEdit(self)
+        self.date_textBox.setGeometry(100, 10, 250, 20)
+
+        # 사용 금액
+        use_lbl = QLabel('사용 금액', self)
+        use_lbl.move(15, 40)  # 좌표 이동
+        self.use_textBox = QLineEdit(self)
+        self.use_textBox.setGeometry(100, 40, 250, 20)
 
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        # 사용 이유
+        cause_lbl = QLabel('사용 이유', self)
+        cause_lbl.move(15, 70)  # 좌표 이동
+        self.cause_textBox = QLineEdit(self)
+        self.cause_textBox.setGeometry(100, 70, 250, 20)
 
-    def retranslateUi(self, Form):
-        _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "This is Widget"))
-        self.addBtn.setText(_translate("Form", "ADD"))
-        self.addBtn.clicked.connect(self.add_btn_clicked)
+        #버튼
+        addBtn = QPushButton('ADD', self)
+        addBtn.move(267,230)
+        addBtn.clicked.connect(self.add_btn_clicked)
+
+
+        self.setGeometry(30,30,370,270)
+        self.setWindowTitle('컴소 학회비 투명하게')
+        self.show()
+
 
     #add 클릭하였을 때 일어나는 일
     def add_btn_clicked(self):
         date = self.date_textBox.text()
         use_money = self.use_textBox.text()
         cause = self.cause_textBox.text()
+
 
         if len(self.blockchain) == 0:#블록의 길이가 0이면
             # 맨 처음 블록 생성 후 체인으로 블록 묶기
@@ -56,14 +65,26 @@ class Ui_Form(object):
                 self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
                 self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
-                print(date, ' ', use_money, ' ', cause)
+                #출력 상황을 보기 위한 것
+                for i in range(len(self.blockchain)):
+                    print(self.blockchain[i].timestamp)
+                    print(self.blockchain[i].usemoney)
+                    print(self.blockchain[i].cause)
+                    print(self.blockchain[i].remoney)
+
+
         else:
             if date:
                 block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
                 self.blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
                 self.previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
-                print(date, ' ', use_money, ' ', cause)
+                # 출력 상황을 보기 위한 것
+                for i in range(len(self.blockchain)):
+                    print(self.blockchain[i].timestamp)
+                    print(self.blockchain[i].usemoney)
+                    print(self.blockchain[i].cause)
+                    print(self.blockchain[i].remoney)
 
 #블록 정의
 class Block:
@@ -94,7 +115,7 @@ def getRemainmoney(ormoney, usemoney):
 
 # 맨 처음 블록 생성하는 함수
 def create_genesis_block():
-    return Block(0, date.datetime.now(), 100000, 0, getRemainmoney(100000, 0), '', "0")
+    return Block(0, date.datetime.now(), 100000, 0, getRemainmoney(100000, 0), '맨 처음 학회비', "0")
 
 
 # 다음 블록 생성하는 함수
@@ -116,17 +137,7 @@ if __name__ == "__main__":
     import sys
 
     #gui 생성
-    app = QtWidgets.QApplication(sys.argv)
-
-    # QtWidgets은 UI를 구성해주는 클래스들을 포함하고 있음
-    # 해당 소스는 Widget임으로 QtWidgest의 QWidget 메소드 호출
-    Form = QtWidgets.QWidget()
-
-    # 위에서 정의한 UI Form을 Form 객체에 적용하고 있음
-    ui = Ui_Form()
-    ui.setupUi(Form)
-
-    # Widget은 일단 메모리에 적재된 뒤 show 메소드로 화면에 보여짐
-    Form.show()
+    app = QApplication(sys.argv)
+    pos = Ui_Form()
 
     sys.exit(app.exec_()) 
