@@ -5,12 +5,13 @@ from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QLineEdit, QPushButto
 import hashlib as hasher
 import datetime as date
 
+blockchain = []  # 블록이 연결되어 있음
+previous_block = []  # 이전의 블록을 저장. 인덱스 번호를 가져와 다음 블록에 1을 더할거임
+block_to_add = []  # 연결할 블록
+
 
 #Ui를 정의하고 있는 클래스
 class Ui_Form(QWidget):
-    blockchain = []#블록이 연결되어 있음
-    previous_block = []#이전의 블록을 저장. 인덱스 번호를 가져와 다음 블록에 1을 더할거임
-    block_to_add = []#연결할 블록
 
     def __init__(self):
         super().__init__()
@@ -58,36 +59,40 @@ class Ui_Form(QWidget):
 
     #add 클릭하였을 때 일어나는 일
     def add_btn_clicked(self):
+        global blockchain
+        global previous_block
+        global block_to_add
+
         date = self.date_textBox.text()
         use_money = self.use_textBox.text()
         cause = self.cause_textBox.text()
 
 
-        if len(self.blockchain) == 0:#블록의 길이가 0이면
+        if len(blockchain) == 0:#블록의 길이가 0이면
             # 맨 처음 블록 생성 후 체인으로 블록 묶기
-            self.blockchain = [create_genesis_block()]  # 리스트인 blockchanin에 첫번째 값(genesis) 블록 넣음
-            self.previous_block = self.blockchain[0]  # 위에서 생성된 첫번째 블록 만듬
+            blockchain = [create_genesis_block()]  # 리스트인 blockchanin에 첫번째 값(genesis) 블록 넣음
+            previous_block = blockchain[0]  # 위에서 생성된 첫번째 블록 만듬
 
             if date:
-                self.block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
-                self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
-                self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
+                block_to_add = next_block(previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
+                blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
+                previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
                 #저장한 블록 보여주기
-                for i in range(len(self.blockchain)):
-                    stri = str(self.blockchain[i].timestamp)+' '+str(self.blockchain[i].usemoney)+' '+str(
-                        self.blockchain[i].cause) + ' ' + str(self.blockchain[i].remoney)
+                for i in range(len(blockchain)):
+                    stri = str(blockchain[i].timestamp)+' '+str(blockchain[i].usemoney)+' '+str(
+                        blockchain[i].cause) + ' ' + str(blockchain[i].remoney)
                     self.view.append(stri)
 
         else:
             if date:
-                self.block_to_add = next_block(self.previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
-                self.blockchain.append(self.block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
-                self.previous_block = self.block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
+                block_to_add = next_block(previous_block, date, use_money, cause)  # next_block사용하여 블록 생성
+                blockchain.append(block_to_add)  # 맨 처음 붙인 블록에 위에 만든 블록 붙임(리스트임)
+                previous_block = block_to_add  # 전의 블록은 위에 생성된 블록으로 바꿈
 
                 # 저장한 블록 보여주기
-                stri = str(self.block_to_add.timestamp) + ' ' + str(self.block_to_add.usemoney) + ' ' + str(
-                    self.block_to_add.cause) + ' ' + str(self.block_to_add.remoney)
+                stri = str(block_to_add.timestamp) + ' ' + str(block_to_add.usemoney) + ' ' + str(
+                    block_to_add.cause) + ' ' + str(block_to_add.remoney)
                 self.view.append(stri)
 
 #블록 정의
